@@ -5,11 +5,10 @@ from variables import*
 
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-from tensorflow import keras
-from keras.layers import Input, Dense, Dropout
-from keras.layers import LeakyReLU, BatchNormalization
-from keras.models import Model
-from keras.optimizers import Adam
+from tensorflow.keras.layers import Input, Dense, Dropout
+from tensorflow.keras.layers import LeakyReLU, BatchNormalization
+from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
 
 import logging
 logging.getLogger('tensorflow').disabled = True
