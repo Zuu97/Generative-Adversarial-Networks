@@ -4,6 +4,7 @@ import pandas as pd
 import re
 import pickle
 import os
+from sklearn.utils import shuffle
 import matplotlib.pyplot as plt
 
 def preprocess_data(csv_file):
@@ -16,11 +17,13 @@ def preprocess_data(csv_file):
     N, D = Xinput.shape 
     H = int(D ** 0.5)
     W = int(D ** 0.5)
-    Xinput = Xinput.reshape(-1,H,W)
+    Xinput = Xinput.reshape(-1,H,W)/255.0
 
     Xinput = np.dstack([Xinput] * in_channels)
     Xinput = Xinput.reshape(N, H, W, in_channels)
     Xinput = np.pad(Xinput, padding, 'constant')
+
+    Xinput, Yinput = shuffle(Xinput, Yinput)
 
     return Xinput, Yinput
 
