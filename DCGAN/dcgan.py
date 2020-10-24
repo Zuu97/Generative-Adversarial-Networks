@@ -18,6 +18,11 @@ physical_devices = tf.config.experimental.list_physical_devices('GPU')
 print("\nNum GPUs Available: {}\n".format(len(physical_devices)))
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
+'''
+ 
+        python ignore -w dcgan.py
+
+'''
 class DeepConvolutionalGAN(object):
     def __init__(self):
         Xtrain, Ytrain, Xtest , Ytest = get_data()
@@ -28,11 +33,6 @@ class DeepConvolutionalGAN(object):
         print("train input shape : {}".format(Xtrain.shape))
         print("test  input shape : {}".format(Xtest.shape))
         print("Num. of classes   : {}".format(len(set(self.Ytrain))))
-
-    #     X, Y= get_data()
-    #     self.X = X
-    #     self.Y = Y
-    #     print("input shape : {}".format(X.shape))
 
     def distriminator(self):
         mobilenet_functional = tf.keras.applications.MobileNet(weights='imagenet', include_top=False, input_shape=input_shape)
@@ -53,7 +53,7 @@ class DeepConvolutionalGAN(object):
                     inputs=inputs,
                     outputs=outputs
                     )
-        model.summary()
+        # model.summary()
         model.compile(
             loss='binary_crossentropy',
             optimizer=Adam(learning_rate),
@@ -86,7 +86,7 @@ class DeepConvolutionalGAN(object):
                     outputs=outputs
                     )
                                                 
-        model.summary()
+        # model.summary()
 
         self.generator_model = model
 
@@ -104,20 +104,20 @@ class DeepConvolutionalGAN(object):
                 metrics=['accuracy']
                         )
 
-    def storeImages(self,epoch,rows=5, cols=5):
+    def storeImages(self,epoch,iter,rows=5, cols=5):
         noise = np.random.randn(rows*cols, latent_dim)
-        generated_imgs = self.generator.predict(noise)
+        fake_imgs = self.generator_model.predict(noise)   # 25, 32, 32, 3
 
-        generated_imgs = (generated_imgs + 1) * 0.5
+        fake_imgs = (fake_imgs + 1) * 0.5 # rescale between 0 and 1
 
         fig, axes = plt.subplots(rows, cols)
         idx = 0
         for i in range(rows):
             for j in range(rows):
-                axes[i,j].imshow(generated_imgs[idx].reshape(size, size), cmap='gray')
+                axes[i,j].imshow(fake_imgs[idx].reshape(new_size, new_size), cmap='gray')
                 axes[i,j].axis('off')
                 idx += 1
-        fig_name = os.path.join(gan_prediction_path, 'gan'+str(epoch)+'.png')
+        fig_name = os.path.join(gan_prediction_path, 'dcgan'+str(epoch)+'_'+str(iter)+'.png')
         fig.savefig(fig_name)
         plt.close()
 
@@ -130,19 +130,19 @@ class DeepConvolutionalGAN(object):
 
         n_batches = len(self.Xtrain) // num_epochs
         for epoch in range(1, num_epochs+1):
-            for i in n_batches:
-                idxs = np.random.choice(len(self.Xtrain), batch_size)
+            for i in range(n_batches):
+                # idxs = np.random.choice(len(self.Xtrain), batch_size)
                 noise = np.random.randn(batch_size, latent_dim)
 
                 real_imgs = self.Xtrain[i*batch_size : (i+1)*batch_size]
-                fake_imgs = self.generator.predict(noise)
+                fake_imgs = self.generator_model.predict(noise)
 
                 #Train discriminator
-                Dloss_real, Dacc_real = self.discriminator_model.train_on_batch(
+                Dloss_real, Dacc_real = self.distriminator_model.train_on_batch(
                                                                     real_imgs,
                                                                     ones
                                                                     )
-                Dloss_fake, Dacc_fake = self.discriminator_model.train_on_batch(
+                Dloss_fake, Dacc_fake = self.distriminator_model.train_on_batch(
                                                                     fake_imgs,
                                                                     zeros
                                                                     )
@@ -157,28 +157,36 @@ class DeepConvolutionalGAN(object):
                 Dloss.append(Gloss_epoch)
 
                 if epoch % verbose == 0:
-                    print("Epoch: {}, Dloss: {}, Dacc: {}, Gloss: {}".format(epoch, Dloss_epoch, Dacc_epoch, Gloss_epoch))
+                    print("Epoch: {}, Iteration: {}, Dloss: {}, Dacc: {}, Gloss: {}".format(epoch, i, Dloss_epoch, Dacc_epoch, Gloss_epoch))
                 if epoch % sample_period == 0:
-                    self.storeImages(epoch)
+                    self.storeImages(epoch, i)
 
-    @staticmethod
-    def load_model(disc_loss):
+    def load_model(self):
         json_file = open(model_architecture, 'r')
         loaded_model_json = json_file.read()
         json_file.close()
 
-        model = model_from_json(loaded_model_json)
-        model.load_weights(model_weights)
-        return model
+        self.gan = model_from_json(loaded_model_json)
+        self.gan.load_weights(model_weights)
 
-    @staticmethod
-    def save_model(model):
-        model_json = model.to_json()
+    def save_model(self):
+        model_json = self.gan.to_json()
         with open(model_architecture, "w") as json_file:
             json_file.write(model_json)
-        model.save_weights(model_weights)
+        self.gan.save_weights(model_weights)
+
+    def run(self):
+        self.distriminator()
+        self.generator()
+        self.ganModel()
+
+        if os.path.exists(model_architecture):
+            self.load_model()
+        else:
+            self.trainModel()
+            self.save_model()
+
 
 if __name__ == "__main__":
     model = DeepConvolutionalGAN()
-    model.distriminator()
-    model.generator_model()
+    model.run()

@@ -31,5 +31,3 @@ def get_data():
     Xtrain, Ytrain = preprocess_data(train_path)
     Xtest , Ytest   = preprocess_data(test_path)
     return Xtrain, Ytrain, Xtest , Ytest
-    # X , Y   = preprocess_data(test_path)
-    # return X, Y

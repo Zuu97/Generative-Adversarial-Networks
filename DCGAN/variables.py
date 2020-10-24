@@ -1,7 +1,8 @@
 import os
 batch_size = 256
-num_epochs = 20
+num_epochs = 10
 size = 28
+new_size = 32
 verbose = 100
 sample_period = 200
 input_shape = (32, 32, 3)
