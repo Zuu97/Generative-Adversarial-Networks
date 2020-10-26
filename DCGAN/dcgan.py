@@ -114,10 +114,10 @@ class DeepConvolutionalGAN(object):
         idx = 0
         for i in range(rows):
             for j in range(rows):
-                axes[i,j].imshow(fake_imgs[idx].reshape(new_size, new_size), cmap='gray')
+                axes[i,j].imshow(fake_imgs[idx].reshape(input_shape), cmap='gray')
                 axes[i,j].axis('off')
                 idx += 1
-        fig_name = os.path.join(gan_prediction_path, 'dcgan'+str(epoch)+'_'+str(iter)+'.png')
+        fig_name = os.path.join(gan_prediction_path, 'dcgan_'+str(epoch)+'_'+str(iter)+'.png')
         fig.savefig(fig_name)
         plt.close()
 
@@ -128,13 +128,13 @@ class DeepConvolutionalGAN(object):
         Gloss = []
         Dloss = []
 
-        n_batches = len(self.Xtrain) // num_epochs
+        n_batches = len(self.Xtrain) // batch_size
         for epoch in range(1, num_epochs+1):
-            for i in range(n_batches):
+            for Iteration in range(n_batches):
                 # idxs = np.random.choice(len(self.Xtrain), batch_size)
                 noise = np.random.randn(batch_size, latent_dim)
 
-                real_imgs = self.Xtrain[i*batch_size : (i+1)*batch_size]
+                real_imgs = self.Xtrain[Iteration*batch_size : (Iteration+1)*batch_size]
                 fake_imgs = self.generator_model.predict(noise)
 
                 #Train discriminator
@@ -156,10 +156,10 @@ class DeepConvolutionalGAN(object):
                 Gloss.append(Gloss_epoch)
                 Dloss.append(Gloss_epoch)
 
-                if epoch % verbose == 0:
-                    print("Epoch: {}, Iteration: {}, Dloss: {}, Dacc: {}, Gloss: {}".format(epoch, i, Dloss_epoch, Dacc_epoch, Gloss_epoch))
-                if epoch % sample_period == 0:
-                    self.storeImages(epoch, i)
+                if Iteration % verbose == 0:
+                    print("Epoch: {}, Iteration: {}, Dloss: {}, Dacc: {}, Gloss: {}".format(epoch, Iteration, Dloss_epoch, Dacc_epoch, Gloss_epoch))
+                if Iteration % sample_period == 0:
+                    self.storeImages(epoch, Iteration)
 
     def load_model(self):
         json_file = open(model_architecture, 'r')

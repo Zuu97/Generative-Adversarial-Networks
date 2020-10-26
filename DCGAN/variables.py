@@ -1,10 +1,10 @@
 import os
-batch_size = 256
+batch_size = 64
 num_epochs = 10
 size = 28
 new_size = 32
 verbose = 100
-sample_period = 200
+sample_period = 100
 input_shape = (32, 32, 3)
 in_channels = 3
 keep_prob = 0.3
@@ -30,4 +30,4 @@ model_architecture = 'weights/gan_architecture.json'
 
 train_path = 'data/mnist_train.csv'
 test_path = 'data/mnist_test.csv'
-gan_prediction_path = os.path.join(os.getcwd(), 'gan_predictions')
+gan_prediction_path = os.path.join(os.getcwd(), 'dcgan_predictions')
